@@ -1,0 +1,48 @@
+import processing.video.*;
+import themidibus.*;
+Movie movie;
+MidiBus myBus;
+float scaleit=.018, jumpto=0, moviespeed=1;
+PImage[] img;
+int scaler=20, size=3, count;
+
+void setup() {
+  size(1280, 720);
+  MidiBus.list(); 
+  myBus=new MidiBus(this, 2, 0);
+  frameRate(30);
+  movie = new Movie(this, "t2.mp4");
+  movie.loop();
+  movie.volume(0);
+  movie.speed(moviespeed);
+  println("Total frames:", int(movie.duration()*30.0), " # of sec:", movie.duration());
+  background(0);
+  img=new PImage[size*size];
+  for (int i=0; i<img.length-1; i++) img[i]=get();
+}
+
+
+void movieEvent(Movie m) {
+  m.read();
+}
+
+void controllerChange(int channel, int note, int velocity) {
+  if (channel==0) {
+    if (note==16) scaleit=map(velocity, 0, 127, 0, .2);
+    if (note==17) scaler=int(map(velocity, 0, 127, 0, 100));
+  }
+}
+
+void draw() { 
+  pushMatrix();
+  scale(scaleit);
+  image(movie, 0, 0);
+  popMatrix();
+  img[0]=get();
+  for (int i=img.length-1; i>0; i--) img[i]=img[i-1];
+  for (int j=0; j<size-1; j++) {
+    for (int i=0; i<size-1; i++) {
+      image(img[i+j*(size-1)], i*scaler, j*scaler);
+    }
+  }
+}
